@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "jsx-a11y", "nextjs", "import", "unicorn"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "import/no-unassigned-import": ["warn", { "allow": ["**/*.css"] }],
+    "typescript/no-explicit-any": "error"
+  },
+  "settings": {
+    "next": { "rootDir": "." },
+    "react": {
+      "linkComponents": [{ "name": "Link", "attribute": "href" }]
+    },
+    "jsx-a11y": {
+      "components": { "Link": "a", "Image": "img" }
+    }
+  },
+  "ignorePatterns": ["dist/", ".next/", ".wrangler/", "cloudflare-env.d.ts"]
+}
