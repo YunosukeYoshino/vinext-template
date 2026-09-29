@@ -5,53 +5,46 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Core Commands
 
 ```bash
-pnpm dev          # vinext dev server (http://localhost:3000)
-pnpm build        # production build → dist/
-pnpm deploy       # build + deploy to Cloudflare Workers
-pnpm lint         # oxlint via vinext
+pnpm dev          # vite dev server
+pnpm build        # production build → .cloudflare/output/
+pnpm start        # preview the built Worker locally
+pnpm deploy       # deploy to Cloudflare Workers (vinext-cloudflare deploy)
+pnpm lint         # oxlint
 pnpm format       # oxfmt (format and write)
 pnpm format:check # oxfmt (check only)
-pnpm cf-typegen   # regenerate cloudflare-env.d.ts from wrangler bindings
 ```
 
 ## Project
 
-Next.js App Router application running on **Cloudflare Workers via vinext** — a Vite-based reimplementation of Next.js that replaces the webpack/Node.js runtime with Vite and deploys directly to the edge.
+Next.js App Router application running on **Cloudflare Workers via vinext 1.0** — a Vite-based reimplementation of Next.js that replaces the webpack/Node.js runtime with Vite and deploys directly to the edge.
 
 ## Architecture
 
 ```
-src/app/          ← Next.js App Router (pages, layouts, CSS)
-worker/index.ts   ← Cloudflare Worker entry point (image optimization + SVG bypass)
-vite.config.ts    ← Vite config: vinext({ rsc: false }) + rsc() + cloudflare()
-wrangler.jsonc    ← Wrangler deploy config (ASSETS + IMAGES bindings)
-next.config.ts    ← Next.js config (read by vinext at build time)
-dist/             ← Build output (client/ and server/ subdirs)
+src/app/              ← Next.js App Router (pages, layouts, CSS)
+vite.config.ts        ← Vite config: vinext() + cloudflare() plugins
+cloudflare.config.ts  ← Worker config via cf (ASSETS + IMAGES bindings)
+next.config.ts        ← Next.js-style config (read by vinext at build time)
+.cloudflare/types     ← Generated Worker types (gitignored)
+.cloudflare/output    ← Build output (gitignored — worker bundle + client assets)
 ```
 
 ### How vinext works
 
-- `next/*` imports are shimmed automatically — no application code changes needed
-- `next/image` is replaced by `@unpic/react`; local images are routed through `/_vinext/image?url=...`
+- `next/*` imports are shimmed by vinext — the `next` package is NOT a dependency
+- `next/image` is routed through `imagesOptimizer()` declared in `vite.config.ts`
 - `next/font/google` loads from CDN at runtime, not self-hosted at build time
-- `next` package must remain in `dependencies` as vinext uses it for shims and types
-
-### vite.config.ts — critical pattern
-
-Use `vinext({ rsc: false })` to disable auto-registration, then register `rsc()` explicitly with entry points. Using plain `vinext()` alongside a manual `rsc()` causes a duplicate plugin error.
-
-### worker/index.ts — SVG handling
-
-Cloudflare Images API cannot process SVG files. The worker bypasses image optimization for `.svg` URLs and fetches them directly from `env.ASSETS`. See `worker/index.ts` for the implementation.
+- `vinext()` auto-registers the RSC plugin — do not add `rsc()` manually
+- Worker types land in `.cloudflare/types` during dev/build; regenerate standalone with `pnpm exec cf workers types`
 
 ### Cloudflare bindings
 
+Declared in `cloudflare.config.ts` via `bindings.*` helpers:
+
 | Binding      | Purpose                                        |
 | ------------ | ---------------------------------------------- |
-| `env.ASSETS` | Static asset delivery (`dist/client/`)         |
+| `env.ASSETS` | Static asset delivery (built client assets)    |
 | `env.IMAGES` | Image transformation via Cloudflare Images API |
-
-Add local binding overrides in `.dev.vars`.
 
 ## Git Workflow
 

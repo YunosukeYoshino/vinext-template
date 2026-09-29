@@ -19,5 +19,5 @@
       "components": { "Link": "a", "Image": "img" }
     }
   },
-  "ignorePatterns": ["dist/", ".next/", ".wrangler/", "cloudflare-env.d.ts"]
+  "ignorePatterns": ["dist/", ".next/", ".wrangler/", ".cloudflare/"]
 }
