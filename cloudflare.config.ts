@@ -7,6 +7,7 @@ export default defineConfig({
     compatibilityDate: "2026-09-29",
     compatibilityFlags: ["nodejs_compat"],
     assets: { notFoundHandling: "none" },
+    observability: { enabled: true },
     env: {
       ASSETS: bindings.assets(),
       IMAGES: bindings.images(),
