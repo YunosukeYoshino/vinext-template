@@ -21,6 +21,10 @@
 /build
 /dist
 
+# vinext
+/.vinext/
+/.cloudflare/
+
 # misc
 .DS_Store
 *.pem
